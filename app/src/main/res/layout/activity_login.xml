@@ -1,8 +1,12 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:custom="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true">
+    android:fillViewport="true"
+    android:fitsSystemWindows="true"
+    tools:context=".ActivityLogin">
+
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -37,7 +41,8 @@
                 android:hint="e-mail"
                 android:inputType="textEmailAddress"
                 android:lines="1"
-                android:padding="@dimen/activity_horizontal_margin" />
+                android:padding="@dimen/activity_horizontal_margin"
+                android:textColor="@color/colorIcons" />
         </android.support.design.widget.TextInputLayout>
 
         <android.support.design.widget.TextInputLayout
@@ -55,6 +60,7 @@
                 android:inputType="textPassword"
                 android:lines="1"
                 android:padding="@dimen/activity_horizontal_margin"
+                android:textColor="@color/colorIcons"
                 android:textColorHint="@color/colorIcons" />
         </android.support.design.widget.TextInputLayout>
 
@@ -69,6 +75,7 @@
             android:padding="@dimen/activity_horizontal_margin"
             android:text="Login"
             android:textAllCaps="false"
+            android:textColor="@color/colorIcons"
             custom:pb_colorComplete="@color/green_complete"
             custom:pb_colorError="@color/red_error"
             custom:pb_colorNormal="@color/colorPrimaryDark"
@@ -106,6 +113,13 @@
                 android:text="Create Account"
                 android:textColor="@color/colorIcons" />
         </LinearLayout>
+
+        <com.google.android.gms.common.SignInButton
+            android:id="@+id/google_sign_in"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/activity_horizontal_margin"
+            android:padding="@dimen/activity_horizontal_margin" />
 
     </LinearLayout>
 </ScrollView>

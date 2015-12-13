@@ -5,7 +5,7 @@ package thin.blog.knowwell;
  */
 public class Constants {
     public static final String SHARED_PREFS_USER_DATA = "user_data";
-    public static final String USER_DATA_NAME = "name";
+    public static final String USER_DATA_NAME ="name" ;
     public static final String USER_DATA_EMAIL = "email";
     public static final String USER_DATA_PASSWORD = "password";
     public static final String USER_DATA_USER_ID = "user_id";
@@ -15,26 +15,26 @@ public class Constants {
     //url addresses
     public static final String LOGIN;
     public static final String SIGNUP;
-    public static final String SELECT_SURVEY;
+    public static final String SURVEY_LIST;
     public static final String FETCH_QUESTIONS;
     public static final String SUBMIT_ANSWERS;
 
     //for testing
-    private static final Boolean localhost = false;
+    private static final Boolean localhost = true;
 
     private static final String ADDRESS;
 
+
     static {
         if (localhost) {
-            ADDRESS = "http://192.168.1.2:80/knowwell/";
+            ADDRESS = "http://192.168.1.4:80/knowwell/";
         } else {
             ADDRESS = "http://www.thin.comyr.com/";
         }
         LOGIN = ADDRESS + "login.php";
         SIGNUP = ADDRESS + "register.php";
-        SELECT_SURVEY = ADDRESS + "choosesurvey.php";
+        SURVEY_LIST = ADDRESS + "surveylist.php";
         FETCH_QUESTIONS = ADDRESS + "fetchquestions.php";
         SUBMIT_ANSWERS = ADDRESS + "submitanswers.php";
     }
-
 }

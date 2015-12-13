@@ -1,20 +1,37 @@
 package thin.blog.knowwell;
 
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.support.design.widget.Snackbar;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.text.SpannableString;
+import android.text.method.LinkMovementMethod;
+import android.text.util.Linkify;
+import android.util.Log;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.dd.processbutton.iml.ActionProcessButton;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.common.SignInButton;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.plus.Plus;
+import com.google.android.gms.plus.model.people.Person;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -28,24 +45,29 @@ import butterknife.OnClick;
 import network.CustomRequest;
 import network.VolleySingleton;
 
-public class LoginActivity extends AppCompatActivity {
+public class LoginActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+    private static final int RC_SIGN_IN = 0;
+    private static final int PROFILE_PIC_SIZE = 400;
+    private static final String TAG = "MainActivity";
     @Bind(R.id.email)
     EditText email;
     @Bind(R.id.password)
     EditText password;
     @Bind(R.id.login)
     ActionProcessButton login;
-    @Bind(R.id.forgot_password)
-    TextView forgotPassword;
-    @Bind(R.id.create_account)
-    TextView createAccount;
-
+    @Bind(R.id.google_sign_in)
+    SignInButton googleSignIn;
     String userInputEmail, userInputPassword;
     String serverMessage;
     int serverSuccess;
     SharedPreferences sharedPreferences;
     SharedPreferences.Editor editor;
     int userDataUserId;
+    private GoogleApiClient mGoogleApiClient;
+    private boolean mIntentInProgress;
+    private boolean mSignInClicked;
+    private ConnectionResult mConnectionResult;
+    private SignInButton btnSignIn;
 
     public static boolean isValidEmailAddress(String email) {
         String ePattern = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$";
@@ -62,7 +84,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     @OnClick(R.id.login)
-    public void login(View v) {
+    public void login() {
         lockView(login);
         userInputEmail = email.getText().toString();
         userInputPassword = password.getText().toString();
@@ -154,26 +176,76 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         sharedPreferences = getSharedPreferences(Constants.SHARED_PREFS_USER_DATA, MODE_PRIVATE);
-        if (sharedPreferences.getBoolean(Constants.SUCCESSFUL_LOGIN_HISTORY, false)) {
-            // if (true) {
+        editor = sharedPreferences.edit();
+        //if (sharedPreferences.getBoolean(Constants.SUCCESSFUL_LOGIN_HISTORY, false)) {
+        if (false) {
             startActivity(new Intent(LoginActivity.this, SurveyList.class));
             finish();
         }
         setContentView(R.layout.activity_login);
         //binding butterknife
         ButterKnife.bind(this);
-        email.setText("test@test.com");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Window window = this.getWindow();
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            window.setStatusBarColor(ContextCompat.getColor(this, R.color.colorPrimaryDark));
+        }
+        //for testing
+        email.setText("jm.prathab@gmail.com");
         password.setText("password");
+
+        //Google Sign In
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this).addApi(Plus.API)
+                .addScope(Plus.SCOPE_PLUS_LOGIN).build();
     }
 
+    protected void onStart() {
+        super.onStart();
+        mGoogleApiClient.connect();
+    }
+
+    protected void onStop() {
+        super.onStop();
+        if (mGoogleApiClient.isConnected()) {
+            mGoogleApiClient.disconnect();
+        }
+    }
+
+    private void resolveSignInError() {
+        if (mConnectionResult.hasResolution()) {
+            try {
+                mIntentInProgress = true;
+                mConnectionResult.startResolutionForResult(this, RC_SIGN_IN);
+            } catch (IntentSender.SendIntentException e) {
+                mIntentInProgress = false;
+                mGoogleApiClient.connect();
+            }
+        }
+    }
+
+
     @OnClick(R.id.forgot_password)
-    public void forgotPasssword(View v) {
-        //TODO
+    public void forgotPasssword() {
+        SpannableString message = new SpannableString("To reset Password visit \nwww.knowwell/reset.php");
+        Linkify.addLinks(message, Linkify.ALL);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this, R.style.AlertDialogLight);
+        builder.setCancelable(false);
+        builder.setTitle("Password Reset");
+        builder.setMessage(message);
+        builder.setPositiveButton("Okay", null);
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+        ((TextView) alertDialog.findViewById(android.R.id.message)).setMovementMethod(LinkMovementMethod.getInstance());
     }
 
     @OnClick(R.id.create_account)
-    public void createAccount(View v) {
-        //TODO
+    public void createAccount() {
+        startActivity(new Intent(LoginActivity.this, SignUp.class));
+        finish();
     }
 
     private void lockView(View v) {
@@ -182,5 +254,97 @@ public class LoginActivity extends AppCompatActivity {
 
     private void releaseView(View v) {
         v.setClickable(true);
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        mSignInClicked = false;
+        Toast.makeText(this, "User is connected!", Toast.LENGTH_LONG).show();
+
+        // Get user's information
+        getProfileInformation();
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        mGoogleApiClient.connect();
+
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        if (!connectionResult.hasResolution()) {
+            GooglePlayServicesUtil.getErrorDialog(connectionResult.getErrorCode(), this,
+                    0).show();
+            return;
+        }
+
+        if (!mIntentInProgress) {
+            // Store the ConnectionResult for later usage
+            mConnectionResult = connectionResult;
+
+            if (mSignInClicked) {
+                // The user has already clicked 'sign-in' so we attempt to
+                // resolve all
+                // errors until the user is signed in, or they cancel.
+                resolveSignInError();
+            }
+        }
+    }
+
+    @OnClick(R.id.google_sign_in)
+    public void signInWithGplus() {
+        if (!mGoogleApiClient.isConnecting()) {
+            mSignInClicked = true;
+            resolveSignInError();
+        }
+    }
+
+    private void getProfileInformation() {
+        try {
+            if (Plus.PeopleApi.getCurrentPerson(mGoogleApiClient) != null) {
+                Person currentPerson = Plus.PeopleApi
+                        .getCurrentPerson(mGoogleApiClient);
+                String personName = currentPerson.getDisplayName();
+                String personPhotoUrl = currentPerson.getImage().getUrl();
+                String personGooglePlusProfile = currentPerson.getUrl();
+                String email = Plus.AccountApi.getAccountName(mGoogleApiClient);
+
+                Log.e(TAG, "Name: " + personName + ", plusProfile: "
+                        + personGooglePlusProfile + ", email: " + email
+                        + ", Image: " + personPhotoUrl);
+
+
+                // by default the profile url gives 50x50 px image only
+                // we can replace the value with whatever dimension we want by
+                // replacing sz=X
+                personPhotoUrl = personPhotoUrl.substring(0,
+                        personPhotoUrl.length() - 2)
+                        + PROFILE_PIC_SIZE;
+
+                //use volley to fetch profile picture
+
+
+            } else {
+                Toast.makeText(getApplicationContext(),
+                        "Person information is null", Toast.LENGTH_LONG).show();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int responseCode, Intent intent) {
+        if (requestCode == RC_SIGN_IN) {
+            if (responseCode != RESULT_OK) {
+                mSignInClicked = false;
+            }
+            mIntentInProgress = false;
+            if (!mGoogleApiClient.isConnecting()) {
+                mGoogleApiClient.connect();
+            }
+        }
     }
 }
