@@ -1,32 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="190dp"
-    android:background="@drawable/background_material"
-    android:orientation="vertical">
+    android:layout_height="190dp">
+
+    <ImageView
+        android:id="@+id/cover_photo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" />
 
     <de.hdodenhof.circleimageview.CircleImageView
-        android:id="@+id/profile_image"
-        android:layout_width="76dp"
-        android:layout_height="76dp"
+        android:id="@+id/profile_photo"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_centerVertical="true"
         android:layout_marginLeft="24dp"
-        android:layout_marginStart="24dp"
-        android:src="@drawable/profile" />
+        android:layout_marginStart="24dp" />
 
     <TextView
-        android:id="@+id/username"
+        android:id="@+id/name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@+id/email"
-        android:layout_alignLeft="@+id/profile_image"
-        android:layout_alignStart="@+id/profile_image"
+        android:layout_alignLeft="@+id/profile_photo"
+        android:layout_alignStart="@+id/profile_photo"
         android:gravity="left"
         android:paddingBottom="4dp"
-        android:text="Prathab Murugan"
-        android:textColor="#FFF"
+        android:text="Name"
+        android:textColor="@color/colorPrimary"
         android:textSize="14sp"
         android:textStyle="bold" />
 
@@ -34,13 +37,13 @@
         android:id="@+id/email"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/username"
+        android:layout_alignLeft="@+id/name"
         android:layout_alignParentBottom="true"
-        android:layout_alignStart="@+id/username"
+        android:layout_alignStart="@+id/name"
         android:layout_marginBottom="8dp"
         android:gravity="left"
-        android:text="jm.prathab@gmail.com"
-        android:textColor="#fff"
+        android:text="email"
+        android:textColor="@color/colorPrimary"
         android:textSize="14sp" />
 
 </RelativeLayout>

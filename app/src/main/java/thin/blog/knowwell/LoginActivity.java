@@ -13,7 +13,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.SpannableString;
 import android.text.method.LinkMovementMethod;
 import android.text.util.Linkify;
-import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -48,7 +47,6 @@ import network.VolleySingleton;
 public class LoginActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
     private static final int RC_SIGN_IN = 0;
     private static final int PROFILE_PIC_SIZE = 400;
-    private static final String TAG = "MainActivity";
     @Bind(R.id.email)
     EditText email;
     @Bind(R.id.password)
@@ -67,7 +65,6 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
     private boolean mIntentInProgress;
     private boolean mSignInClicked;
     private ConnectionResult mConnectionResult;
-    private SignInButton btnSignIn;
 
     public static boolean isValidEmailAddress(String email) {
         String ePattern = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$";
@@ -93,7 +90,6 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
             Map<String, String> formData = new HashMap<>();
             formData.put("email", userInputEmail);
             formData.put("password", userInputPassword);
-
             final CustomRequest request = new CustomRequest(Request.Method.POST, Constants.LOGIN, formData, new Response.Listener<JSONObject>() {
                 @Override
                 public void onResponse(JSONObject response) {
@@ -123,7 +119,6 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
             Snackbar.make(login, "Enter Valid Details", Snackbar.LENGTH_SHORT).show();
         }
     }
-
 
     private void jsonParser(JSONObject response) {
         try {
@@ -191,11 +186,9 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
             window.setStatusBarColor(ContextCompat.getColor(this, R.color.colorPrimaryDark));
         }
-        //for testing
         email.setText("jm.prathab@gmail.com");
         password.setText("password");
 
-        //Google Sign In
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this).addApi(Plus.API)
@@ -226,6 +219,94 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         }
     }
 
+    @Override
+    public void onConnected(Bundle bundle) {
+        mSignInClicked = false;
+        getProfileInformation();
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        mGoogleApiClient.connect();
+
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        if (!connectionResult.hasResolution()) {
+            GooglePlayServicesUtil.getErrorDialog(connectionResult.getErrorCode(), this, 0).show();
+            return;
+        }
+
+        if (!mIntentInProgress) {
+            mConnectionResult = connectionResult;
+            if (mSignInClicked) {
+                resolveSignInError();
+            }
+        }
+    }
+
+    private void signInWithGoogle() {
+        if (!mGoogleApiClient.isConnecting()) {
+            mSignInClicked = true;
+            resolveSignInError();
+        }
+    }
+
+    private void getProfileInformation() {
+        try {
+            if (Plus.PeopleApi.getCurrentPerson(mGoogleApiClient) != null) {
+                Person person = Plus.PeopleApi.getCurrentPerson(mGoogleApiClient);
+                String personName = person.getDisplayName();
+                String personEmail = Plus.AccountApi.getAccountName(mGoogleApiClient);
+                String personGoogleProfile = person.getUrl();
+                String personProfilePhotoUrl = person.getImage().getUrl();
+                String personCoverPhotoUrl = person.getCover().getCoverPhoto().getUrl();
+                personProfilePhotoUrl = personProfilePhotoUrl.substring(0, personProfilePhotoUrl.length() - 2) + PROFILE_PIC_SIZE;
+                editor.putString(Constants.USER_DATA_NAME, personName);
+                editor.putString(Constants.USER_DATA_EMAIL, personEmail);
+                editor.putString(Constants.USER_DATA_GOOGLE_EMAIL, personEmail);
+                editor.putString(Constants.USER_DATA_GOOGLE_PROFILE, personGoogleProfile);
+                editor.putString(Constants.USER_DATA_GOOGLE_PROFILE_PHOTO, personProfilePhotoUrl);
+                editor.putString(Constants.USER_DATA_GOOGLE_COVER_PHOTO, personCoverPhotoUrl);
+                editor.putBoolean(Constants.SUCCESSFUL_LOGIN_HISTORY, true);
+                editor.putBoolean(Constants.SUCCESSFUL_REGISTRATION_HISTORY, true);
+                editor.apply();
+                startActivity(new Intent(LoginActivity.this, SurveyList.class));
+                finish();
+            } else {
+                Toast.makeText(getApplicationContext(), "Profile Cannot be fetched", Toast.LENGTH_LONG).show();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int responseCode, Intent intent) {
+        if (requestCode == RC_SIGN_IN) {
+            if (responseCode != RESULT_OK) {
+                mSignInClicked = false;
+            }
+            mIntentInProgress = false;
+            if (!mGoogleApiClient.isConnecting()) {
+                mGoogleApiClient.connect();
+            }
+        }
+    }
+
+    private void lockView(View v) {
+        v.setClickable(false);
+    }
+
+    private void releaseView(View v) {
+        v.setClickable(true);
+    }
+
+    @OnClick(R.id.google_sign_in)
+    public void googleSignIn() {
+        signInWithGoogle();
+    }
 
     @OnClick(R.id.forgot_password)
     public void forgotPasssword() {
@@ -246,105 +327,5 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
     public void createAccount() {
         startActivity(new Intent(LoginActivity.this, SignUp.class));
         finish();
-    }
-
-    private void lockView(View v) {
-        v.setClickable(false);
-    }
-
-    private void releaseView(View v) {
-        v.setClickable(true);
-    }
-
-    @Override
-    public void onConnected(Bundle bundle) {
-        mSignInClicked = false;
-        Toast.makeText(this, "User is connected!", Toast.LENGTH_LONG).show();
-
-        // Get user's information
-        getProfileInformation();
-
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-        mGoogleApiClient.connect();
-
-    }
-
-    @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-        if (!connectionResult.hasResolution()) {
-            GooglePlayServicesUtil.getErrorDialog(connectionResult.getErrorCode(), this,
-                    0).show();
-            return;
-        }
-
-        if (!mIntentInProgress) {
-            // Store the ConnectionResult for later usage
-            mConnectionResult = connectionResult;
-
-            if (mSignInClicked) {
-                // The user has already clicked 'sign-in' so we attempt to
-                // resolve all
-                // errors until the user is signed in, or they cancel.
-                resolveSignInError();
-            }
-        }
-    }
-
-    @OnClick(R.id.google_sign_in)
-    public void signInWithGplus() {
-        if (!mGoogleApiClient.isConnecting()) {
-            mSignInClicked = true;
-            resolveSignInError();
-        }
-    }
-
-    private void getProfileInformation() {
-        try {
-            if (Plus.PeopleApi.getCurrentPerson(mGoogleApiClient) != null) {
-                Person currentPerson = Plus.PeopleApi
-                        .getCurrentPerson(mGoogleApiClient);
-                String personName = currentPerson.getDisplayName();
-                String personPhotoUrl = currentPerson.getImage().getUrl();
-                String personGooglePlusProfile = currentPerson.getUrl();
-                String email = Plus.AccountApi.getAccountName(mGoogleApiClient);
-
-                Log.e(TAG, "Name: " + personName + ", plusProfile: "
-                        + personGooglePlusProfile + ", email: " + email
-                        + ", Image: " + personPhotoUrl);
-
-
-                // by default the profile url gives 50x50 px image only
-                // we can replace the value with whatever dimension we want by
-                // replacing sz=X
-                personPhotoUrl = personPhotoUrl.substring(0,
-                        personPhotoUrl.length() - 2)
-                        + PROFILE_PIC_SIZE;
-
-                //use volley to fetch profile picture
-
-
-            } else {
-                Toast.makeText(getApplicationContext(),
-                        "Person information is null", Toast.LENGTH_LONG).show();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int responseCode, Intent intent) {
-        if (requestCode == RC_SIGN_IN) {
-            if (responseCode != RESULT_OK) {
-                mSignInClicked = false;
-            }
-            mIntentInProgress = false;
-            if (!mGoogleApiClient.isConnecting()) {
-                mGoogleApiClient.connect();
-            }
-        }
     }
 }

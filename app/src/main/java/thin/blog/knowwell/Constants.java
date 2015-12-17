@@ -5,10 +5,14 @@ package thin.blog.knowwell;
  */
 public class Constants {
     public static final String SHARED_PREFS_USER_DATA = "user_data";
-    public static final String USER_DATA_NAME ="name" ;
+    public static final String USER_DATA_NAME = "name";
     public static final String USER_DATA_EMAIL = "email";
     public static final String USER_DATA_PASSWORD = "password";
     public static final String USER_DATA_USER_ID = "user_id";
+    public static final String USER_DATA_GOOGLE_EMAIL = "google_plus_email";
+    public static final String USER_DATA_GOOGLE_PROFILE = "google_plus_profile";
+    public static final String USER_DATA_GOOGLE_PROFILE_PHOTO = "google_plus_profile_photo";
+    public static final String USER_DATA_GOOGLE_COVER_PHOTO = "google_plus_cover_photo";
     public static final String SUCCESSFUL_LOGIN_HISTORY = "successful_login_history";
     public static final String SUCCESSFUL_REGISTRATION_HISTORY = "successful_registration_history";
 

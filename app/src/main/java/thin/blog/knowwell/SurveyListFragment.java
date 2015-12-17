@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
@@ -12,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -40,16 +42,36 @@ public class SurveyListFragment extends Fragment {
     RecyclerView recyclerView;
     @Bind(R.id.pull_to_refresh)
     TextView pullToRefreshMessage;
-    int userId;
+    String email;
     int serverSuccess;
     int requestCode;
     String serverMessage;
     LinkedList<Survey> data = new LinkedList<>();
     SurveyListAdapter surveyListAdapter;
-
+    SharedPreferences sharedPreferences;
+    RequestQueue requestQueue;
     private OnFragmentInteractionListener mListener;
 
     public SurveyListFragment() {
+    }
+
+    public static SurveyListFragment newInstance(int requestCode) {
+        SurveyListFragment fragment = new SurveyListFragment();
+        Bundle args = new Bundle();
+        args.putInt("REQUEST_CODE", requestCode);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        Bundle bundle = getArguments();
+        if (bundle != null) {
+            this.requestCode = bundle.getInt("REQUEST_CODE");
+            Toast.makeText(getContext(), "Request Code: " + this.requestCode, Toast.LENGTH_LONG).show();
+        }
+
     }
 
     @Override
@@ -62,11 +84,10 @@ public class SurveyListFragment extends Fragment {
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
-        SharedPreferences sharedPreferences = getActivity().getSharedPreferences(Constants.SHARED_PREFS_USER_DATA, Context.MODE_PRIVATE);
-        userId = sharedPreferences.getInt(Constants.USER_DATA_USER_ID, 1);
+        sharedPreferences = getActivity().getSharedPreferences(Constants.SHARED_PREFS_USER_DATA, Context.MODE_PRIVATE);
+        email = sharedPreferences.getString(Constants.USER_DATA_EMAIL, "email");
         super.onActivityCreated(savedInstanceState);
         surveyListAdapter = new SurveyListAdapter(data);
-        swipeRefreshLayout.setColorSchemeColors(R.color.colorPrimary, R.color.colorAccent, R.color.colorDivider);
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -81,10 +102,18 @@ public class SurveyListFragment extends Fragment {
 
     private void refreshSureys() {
         swipeRefreshLayout.setRefreshing(true);
-        RequestQueue requestQueue = VolleySingleton.getInstance().getRequestQueue();
+        requestQueue = VolleySingleton.getInstance().getRequestQueue();
         Map<String, String> formData = new HashMap<>();
-        formData.put("user_id", String.valueOf(userId));
+        
+        Bundle bundle = getArguments();
+        if (bundle != null) {
+            this.requestCode = bundle.getInt("REQUEST_CODE");
+            Toast.makeText(getContext(), "Request Code: " + this.requestCode, Toast.LENGTH_LONG).show();
+        }
+
+        formData.put("email", email);
         formData.put("request_code", String.valueOf(requestCode));
+        Toast.makeText(getContext(), "Request Code in Volley :" + String.valueOf(requestCode), Toast.LENGTH_LONG).show();
 
         final CustomRequest request = new CustomRequest(Request.Method.POST, Constants.SURVEY_LIST, formData, new Response.Listener<JSONObject>() {
             @Override
@@ -94,15 +123,11 @@ public class SurveyListFragment extends Fragment {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                finalDecision();
+                Snackbar.make(swipeRefreshLayout, "Network Error", Snackbar.LENGTH_LONG).show();
             }
         });
         request.setTag(Constants.SURVEY_LIST);
         requestQueue.add(request);
-    }
-
-    private void finalDecision() {
-
     }
 
     private void jsonParser(JSONObject response) {
@@ -124,8 +149,8 @@ public class SurveyListFragment extends Fragment {
                 notifyChangesToView();
             } else {
                 serverMessage = response.getString("message");
+                Snackbar.make(recyclerView, serverMessage, Snackbar.LENGTH_LONG).show();
             }
-            finalDecision();
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -154,11 +179,7 @@ public class SurveyListFragment extends Fragment {
         if (context instanceof OnFragmentInteractionListener) {
             mListener = (OnFragmentInteractionListener) context;
         } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
-        if (context instanceof SurveyList) {
-            requestCode = 1;
+            throw new RuntimeException(context.toString() + " must implement OnFragmentInteractionListener");
         }
     }
 

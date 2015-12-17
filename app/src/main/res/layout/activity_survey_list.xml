@@ -8,6 +8,7 @@
     android:fitsSystemWindows="true">
 
     <LinearLayout
+        android:id="@+id/activity_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
@@ -30,7 +31,6 @@
         android:layout_height="match_parent"
         android:layout_gravity="start"
         app:headerLayout="@layout/drawer_header"
-        app:itemIconTint="@color/colorPrimary"
         app:itemTextColor="@color/colorSecondaryText"
         app:menu="@menu/navigation_drawer" />
 
