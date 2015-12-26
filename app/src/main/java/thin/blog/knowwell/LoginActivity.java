@@ -1,5 +1,6 @@
 package thin.blog.knowwell;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
@@ -13,6 +14,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.SpannableString;
 import android.text.method.LinkMovementMethod;
 import android.text.util.Linkify;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -120,11 +122,67 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         }
     }
 
+    private void loginWithGoogle(String name, String email) {
+        final ProgressDialog progressDialog = new ProgressDialog(this);
+        final RequestQueue requestQueue = VolleySingleton.getInstance().getRequestQueue();
+        Map<String, String> formData = new HashMap<>();
+        formData.put("name", name);
+        formData.put("email", email);
+        final CustomRequest request = new CustomRequest(Request.Method.POST, Constants.GOOGLE_LOGIN, formData, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                progressDialog.dismiss();
+                jsonParserGoogle(response);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                progressDialog.dismiss();
+                Snackbar.make(login, "Network Error", Snackbar.LENGTH_SHORT).show();
+            }
+        });
+        requestQueue.add(request);
+        progressDialog.setIndeterminate(true);
+        progressDialog.setMessage("Please Wait...\nContacting Server");
+        progressDialog.setTitle("Creating Account");
+        progressDialog.show();
+    }
+
+    private void jsonParserGoogle(JSONObject response) {
+        try {
+            int success = response.getInt("status");
+            String message = response.getString("message");
+            if (success == 1 || success == 5) {
+                int userId = response.getInt("user_id");
+                editor.putBoolean(Constants.SUCCESSFUL_REGISTRATION_HISTORY, true);
+                editor.putBoolean(Constants.SUCCESSFUL_LOGIN_HISTORY, true);
+                editor.putInt(Constants.USER_DATA_USER_ID, userId);
+                editor.apply();
+                Toast.makeText(LoginActivity.this,"Inside Google Json Parser",Toast.LENGTH_LONG).show();
+                startActivity(new Intent(LoginActivity.this, SurveyList.class));
+                finish();
+
+            } else {
+                AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this, R.style.AlertDialogLight);
+                builder.setCancelable(false);
+                builder.setTitle("Cannot Create Account");
+                builder.setMessage(message);
+                builder.setPositiveButton("Okay", null);
+                AlertDialog alertDialog = builder.create();
+                alertDialog.show();
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void jsonParser(JSONObject response) {
         try {
-            serverSuccess = response.getInt("success");
+            serverSuccess = response.getInt("status");
+            if (serverSuccess == 1) {
+                userDataUserId = Integer.parseInt(response.getString("user_id"));
+            }
             serverMessage = response.getString("message");
-            userDataUserId = Integer.parseInt(response.getString("user_id"));
             finalDecision();
         } catch (JSONException e) {
             e.printStackTrace();
@@ -146,6 +204,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
 
                 @Override
                 public void onFinish() {
+                    Toast.makeText(LoginActivity.this,"Inside Final Decision",Toast.LENGTH_LONG).show();
                     startActivity(new Intent(LoginActivity.this, SurveyList.class));
                     finish();
                 }
@@ -160,6 +219,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
 
                 @Override
                 public void onFinish() {
+                    login.setProgress(0);
                     releaseView(login);
                 }
             }.start();
@@ -178,7 +238,6 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
             finish();
         }
         setContentView(R.layout.activity_login);
-        //binding butterknife
         ButterKnife.bind(this);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window window = this.getWindow();
@@ -263,17 +322,14 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                 String personProfilePhotoUrl = person.getImage().getUrl();
                 String personCoverPhotoUrl = person.getCover().getCoverPhoto().getUrl();
                 personProfilePhotoUrl = personProfilePhotoUrl.substring(0, personProfilePhotoUrl.length() - 2) + PROFILE_PIC_SIZE;
+                editor.putBoolean(Constants.USER_DATA_IS_GOOGLE_USER, true);
                 editor.putString(Constants.USER_DATA_NAME, personName);
                 editor.putString(Constants.USER_DATA_EMAIL, personEmail);
-                editor.putString(Constants.USER_DATA_GOOGLE_EMAIL, personEmail);
-                editor.putString(Constants.USER_DATA_GOOGLE_PROFILE, personGoogleProfile);
+                editor.putString(Constants.USER_DATA_GOOGLE_PROFILE_URL, personGoogleProfile);
                 editor.putString(Constants.USER_DATA_GOOGLE_PROFILE_PHOTO, personProfilePhotoUrl);
                 editor.putString(Constants.USER_DATA_GOOGLE_COVER_PHOTO, personCoverPhotoUrl);
-                editor.putBoolean(Constants.SUCCESSFUL_LOGIN_HISTORY, true);
-                editor.putBoolean(Constants.SUCCESSFUL_REGISTRATION_HISTORY, true);
                 editor.apply();
-                startActivity(new Intent(LoginActivity.this, SurveyList.class));
-                finish();
+                loginWithGoogle(personName, personEmail);
             } else {
                 Toast.makeText(getApplicationContext(), "Profile Cannot be fetched", Toast.LENGTH_LONG).show();
             }

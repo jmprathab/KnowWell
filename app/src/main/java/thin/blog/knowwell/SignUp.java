@@ -143,7 +143,7 @@ public class SignUp extends AppCompatActivity {
 
     private void jsonParser(JSONObject response) {
         try {
-            serverSuccess = response.getInt("success");
+            serverSuccess = response.getInt("status");
             serverMessage = response.getString("message");
             finalDecision();
         } catch (JSONException e) {

@@ -9,8 +9,8 @@ public class Constants {
     public static final String USER_DATA_EMAIL = "email";
     public static final String USER_DATA_PASSWORD = "password";
     public static final String USER_DATA_USER_ID = "user_id";
-    public static final String USER_DATA_GOOGLE_EMAIL = "google_plus_email";
-    public static final String USER_DATA_GOOGLE_PROFILE = "google_plus_profile";
+    public static final String USER_DATA_IS_GOOGLE_USER = "is_google_user";
+    public static final String USER_DATA_GOOGLE_PROFILE_URL = "google_plus_profile_url";
     public static final String USER_DATA_GOOGLE_PROFILE_PHOTO = "google_plus_profile_photo";
     public static final String USER_DATA_GOOGLE_COVER_PHOTO = "google_plus_cover_photo";
     public static final String SUCCESSFUL_LOGIN_HISTORY = "successful_login_history";
@@ -18,6 +18,7 @@ public class Constants {
 
     //url addresses
     public static final String LOGIN;
+    public static final String GOOGLE_LOGIN;
     public static final String SIGNUP;
     public static final String SURVEY_LIST;
     public static final String FETCH_QUESTIONS;
@@ -36,6 +37,7 @@ public class Constants {
             ADDRESS = "http://www.thin.comyr.com/";
         }
         LOGIN = ADDRESS + "login.php";
+        GOOGLE_LOGIN = ADDRESS + "googlelogin.php";
         SIGNUP = ADDRESS + "register.php";
         SURVEY_LIST = ADDRESS + "surveylist.php";
         FETCH_QUESTIONS = ADDRESS + "fetchquestions.php";

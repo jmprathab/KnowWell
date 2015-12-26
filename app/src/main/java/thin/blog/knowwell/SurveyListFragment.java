@@ -104,7 +104,7 @@ public class SurveyListFragment extends Fragment {
         swipeRefreshLayout.setRefreshing(true);
         requestQueue = VolleySingleton.getInstance().getRequestQueue();
         Map<String, String> formData = new HashMap<>();
-        
+
         Bundle bundle = getArguments();
         if (bundle != null) {
             this.requestCode = bundle.getInt("REQUEST_CODE");
