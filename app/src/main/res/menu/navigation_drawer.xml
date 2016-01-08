@@ -12,10 +12,13 @@
         <item
             android:id="@+id/my_account"
             android:title="My Account" />
-        
+
         <item
             android:id="@+id/settings"
             android:title="Settings" />
+        <item
+            android:id="@+id/logout"
+            android:title="Log Out" />
         <item
             android:id="@+id/about"
             android:title="About" />

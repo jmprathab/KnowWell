@@ -8,7 +8,6 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 
 import datasets.Survey;
@@ -37,7 +36,7 @@ public class SurveyListAdapter extends RecyclerView.Adapter<SurveyListAdapter.Vi
     @Override
     public void onBindViewHolder(SurveyListAdapter.ViewHolder holder, int position) {
         holder.title.setText(data.get(position).getTitle());
-        holder.organization.setText(data.get(position).getOrganization());
+        holder.organization.setText("by " + data.get(position).getOrganization());
         holder.imageView.setImageDrawable(data.get(position).getImage());
     }
 

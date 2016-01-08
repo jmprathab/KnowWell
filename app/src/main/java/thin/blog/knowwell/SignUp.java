@@ -2,14 +2,17 @@ package thin.blog.knowwell;
 
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.support.design.widget.Snackbar;
-import android.support.design.widget.TextInputLayout;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.EditText;
 
 import com.android.volley.Request;
@@ -30,6 +33,11 @@ import butterknife.OnClick;
 import network.CustomRequest;
 import network.VolleySingleton;
 
+/*
+* Sign Up Activity which enables Users to create a new Account by providing valid details
+* After account has been created user will be taken to LoginActivity in which Users can Login using the credentials which were used to create account
+* */
+
 public class SignUp extends AppCompatActivity {
     @Bind(R.id.app_bar)
     Toolbar toolbar;
@@ -39,8 +47,6 @@ public class SignUp extends AppCompatActivity {
     EditText email;
     @Bind(R.id.password)
     EditText password;
-    @Bind(R.id.name_wrapper)
-    TextInputLayout nameWrapper;
     @Bind(R.id.create_account)
     ProcessButton signUp;
     String userInputName, userInputEmail, userInputPassword;
@@ -71,6 +77,12 @@ public class SignUp extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_up);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Window window = this.getWindow();
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            window.setStatusBarColor(ContextCompat.getColor(this, R.color.colorPrimaryDark));
+        }
         ButterKnife.bind(this);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -152,7 +164,7 @@ public class SignUp extends AppCompatActivity {
     }
 
     private void finalDecision() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(SignUp.this,R.style.AlertDialogDark);
+        AlertDialog.Builder builder = new AlertDialog.Builder(SignUp.this, R.style.AlertDialogDark);
         builder.setCancelable(false);
         if (serverSuccess == 1) {
             editor.putString(Constants.USER_DATA_EMAIL, userInputEmail);

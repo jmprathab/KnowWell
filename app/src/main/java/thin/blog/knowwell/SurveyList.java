@@ -1,5 +1,6 @@
 package thin.blog.knowwell;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
@@ -12,7 +13,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
@@ -20,6 +20,10 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import de.hdodenhof.circleimageview.CircleImageView;
 
+/*
+* SurveyList Activity is the main UI Activity of the Application
+* This activity contains the Navigation Drawer and takes care of fragment replacement when options of Navigation View are selected
+* */
 public class SurveyList extends AppCompatActivity implements SurveyListFragment.OnFragmentInteractionListener {
     @Bind(R.id.app_bar)
     Toolbar toolbar;
@@ -33,13 +37,10 @@ public class SurveyList extends AppCompatActivity implements SurveyListFragment.
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_survey_list);
-        //binding butterknife
         ButterKnife.bind(this);
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
-        SurveyListFragment listFragment = SurveyListFragment.newInstance(1);
-        getSupportFragmentManager().beginTransaction().add(R.id.activity_layout, listFragment, "SURVEYS").commit();
         sharedPreferences = getSharedPreferences(Constants.SHARED_PREFS_USER_DATA, MODE_PRIVATE);
         View v = navigationView.getHeaderView(0);
         TextView name = (TextView) v.findViewById(R.id.name);
@@ -53,8 +54,9 @@ public class SurveyList extends AppCompatActivity implements SurveyListFragment.
         String userCoverPictureUrl = sharedPreferences.getString(Constants.USER_DATA_GOOGLE_COVER_PHOTO, "R.drawable.background_material");
         name.setText(userName);
         email.setText(userEmail);
-        if (!userProfilePictureUrl.contentEquals(""))
+        if (!userProfilePictureUrl.contentEquals("")) {
             Picasso.with(this).load(userProfilePictureUrl).into(profilePhoto);
+        }
         Picasso.with(this).load(userCoverPictureUrl).placeholder(R.drawable.background_material).error(R.drawable.background_material).into(coverPhoto);
 
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
@@ -62,17 +64,28 @@ public class SurveyList extends AppCompatActivity implements SurveyListFragment.
             public boolean onNavigationItemSelected(MenuItem item) {
                 item.setEnabled(true);
                 drawerLayout.closeDrawers();
-
                 switch (item.getItemId()) {
                     case R.id.my_surveys:
-                        Toast.makeText(SurveyList.this, "My Surveys", Toast.LENGTH_LONG).show();
-                        SurveyListFragment mySurvey = SurveyListFragment.newInstance(2);
-                        getSupportFragmentManager().beginTransaction().replace(R.id.activity_layout, mySurvey).commit();
+                        SurveyListFragment mySurvey = (SurveyListFragment) getSupportFragmentManager().findFragmentByTag("MY_SURVEYS");
+                        if (mySurvey == null) {
+                            mySurvey = SurveyListFragment.newInstance(2);
+                        }
+                        getSupportFragmentManager().beginTransaction().replace(R.id.activity_layout, mySurvey, "MY_SURVEYS").commit();
                         break;
                     case R.id.surveys:
-                        Toast.makeText(SurveyList.this, "Surveys", Toast.LENGTH_LONG).show();
-                        SurveyListFragment survey = SurveyListFragment.newInstance(1);
-                        getSupportFragmentManager().beginTransaction().replace(R.id.activity_layout, survey).commit();
+                        SurveyListFragment survey = (SurveyListFragment) getSupportFragmentManager().findFragmentByTag("SURVEYS");
+                        if (survey == null) {
+                            survey = SurveyListFragment.newInstance(1);
+                        }
+                        getSupportFragmentManager().beginTransaction().replace(R.id.activity_layout, survey, "SURVEYS").commit();
+                        break;
+
+                    case R.id.logout:
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.putBoolean(Constants.SUCCESSFUL_LOGIN_HISTORY, false);
+                        editor.apply();
+                        startActivity(new Intent(SurveyList.this, LoginActivity.class));
+                        finish();
                         break;
                 }
 
@@ -83,6 +96,11 @@ public class SurveyList extends AppCompatActivity implements SurveyListFragment.
         ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.open_drawer, R.string.close_drawer);
         drawerLayout.setDrawerListener(drawerToggle);
         drawerToggle.syncState();
+        SurveyListFragment survey = (SurveyListFragment) getSupportFragmentManager().findFragmentByTag("SURVEYS");
+        if (survey == null) {
+            survey = SurveyListFragment.newInstance(1);
+        }
+        getSupportFragmentManager().beginTransaction().replace(R.id.activity_layout, survey, "SURVEYS").commit();
     }
 
     @Override

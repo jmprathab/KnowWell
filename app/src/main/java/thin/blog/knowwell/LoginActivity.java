@@ -14,7 +14,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.SpannableString;
 import android.text.method.LinkMovementMethod;
 import android.text.util.Linkify;
-import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -29,7 +28,6 @@ import com.android.volley.VolleyError;
 import com.dd.processbutton.iml.ActionProcessButton;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.plus.Plus;
 import com.google.android.gms.plus.model.people.Person;
@@ -46,6 +44,11 @@ import butterknife.OnClick;
 import network.CustomRequest;
 import network.VolleySingleton;
 
+/*
+* Activity for User Login
+* User can also login using Google
+* This class stores UserID of User after logging In which is required in future*/
+
 public class LoginActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
     private static final int RC_SIGN_IN = 0;
     private static final int PROFILE_PIC_SIZE = 400;
@@ -55,8 +58,6 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
     EditText password;
     @Bind(R.id.login)
     ActionProcessButton login;
-    @Bind(R.id.google_sign_in)
-    SignInButton googleSignIn;
     String userInputEmail, userInputPassword;
     String serverMessage;
     int serverSuccess;
@@ -87,7 +88,8 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         lockView(login);
         userInputEmail = email.getText().toString();
         userInputPassword = password.getText().toString();
-        if (isValidEmailAddress(userInputEmail) && isValidPassword(userInputPassword)) {
+        //if (isValidEmailAddress(userInputEmail) && isValidPassword(userInputPassword)) {
+        if (true) {
             final RequestQueue requestQueue = VolleySingleton.getInstance().getRequestQueue();
             Map<String, String> formData = new HashMap<>();
             formData.put("email", userInputEmail);
@@ -119,6 +121,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
             login.setProgress(1);
         } else {
             Snackbar.make(login, "Enter Valid Details", Snackbar.LENGTH_SHORT).show();
+            releaseView(login);
         }
     }
 
@@ -158,7 +161,6 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                 editor.putBoolean(Constants.SUCCESSFUL_LOGIN_HISTORY, true);
                 editor.putInt(Constants.USER_DATA_USER_ID, userId);
                 editor.apply();
-                Toast.makeText(LoginActivity.this,"Inside Google Json Parser",Toast.LENGTH_LONG).show();
                 startActivity(new Intent(LoginActivity.this, SurveyList.class));
                 finish();
 
@@ -204,7 +206,6 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
 
                 @Override
                 public void onFinish() {
-                    Toast.makeText(LoginActivity.this,"Inside Final Decision",Toast.LENGTH_LONG).show();
                     startActivity(new Intent(LoginActivity.this, SurveyList.class));
                     finish();
                 }
@@ -223,7 +224,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                     releaseView(login);
                 }
             }.start();
-            Snackbar.make(login, "Check Your Credentials", Snackbar.LENGTH_LONG).show();
+            Snackbar.make(login, serverMessage, Snackbar.LENGTH_LONG).show();
         }
     }
 
@@ -232,8 +233,8 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         super.onCreate(savedInstanceState);
         sharedPreferences = getSharedPreferences(Constants.SHARED_PREFS_USER_DATA, MODE_PRIVATE);
         editor = sharedPreferences.edit();
-        //if (sharedPreferences.getBoolean(Constants.SUCCESSFUL_LOGIN_HISTORY, false)) {
-        if (false) {
+        if (sharedPreferences.getBoolean(Constants.SUCCESSFUL_LOGIN_HISTORY, false)) {
+            //if (true) {
             startActivity(new Intent(LoginActivity.this, SurveyList.class));
             finish();
         }
@@ -245,8 +246,8 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
             window.setStatusBarColor(ContextCompat.getColor(this, R.color.colorPrimaryDark));
         }
-        email.setText("jm.prathab@gmail.com");
-        password.setText("password");
+        email.setText("t");
+        password.setText("t");
 
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)

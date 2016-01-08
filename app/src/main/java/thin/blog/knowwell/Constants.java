@@ -1,8 +1,9 @@
 package thin.blog.knowwell;
 
-/**
- * Created by jmprathab on 09/12/15.
- */
+/*
+* This class conatins all the constant values required for the Application
+*/
+
 public class Constants {
     public static final String SHARED_PREFS_USER_DATA = "user_data";
     public static final String USER_DATA_NAME = "name";
@@ -16,7 +17,7 @@ public class Constants {
     public static final String SUCCESSFUL_LOGIN_HISTORY = "successful_login_history";
     public static final String SUCCESSFUL_REGISTRATION_HISTORY = "successful_registration_history";
 
-    //url addresses
+    //URL Addresses for Server
     public static final String LOGIN;
     public static final String GOOGLE_LOGIN;
     public static final String SIGNUP;
@@ -25,6 +26,7 @@ public class Constants {
     public static final String SUBMIT_ANSWERS;
 
     //for testing
+    //set localhost = false for testing from webhost
     private static final Boolean localhost = true;
 
     private static final String ADDRESS;

@@ -13,7 +13,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -35,6 +34,12 @@ import datasets.Survey;
 import network.CustomRequest;
 import network.VolleySingleton;
 
+/*
+* SurveyListFragment class is used to display a list of Surveys undertaken or yet to be taken by the user depending upon the Request Code value set
+* RequestCode = 1 --> Lists all the surveys taken by the user
+* RequestCode = 2 --> Lists all the surveys not taken by the user
+* */
+
 public class SurveyListFragment extends Fragment {
     @Bind(R.id.swipe_refresh_layout)
     SwipeRefreshLayout swipeRefreshLayout;
@@ -43,6 +48,7 @@ public class SurveyListFragment extends Fragment {
     @Bind(R.id.pull_to_refresh)
     TextView pullToRefreshMessage;
     String email;
+    int userId;
     int serverSuccess;
     int requestCode;
     String serverMessage;
@@ -51,9 +57,7 @@ public class SurveyListFragment extends Fragment {
     SharedPreferences sharedPreferences;
     RequestQueue requestQueue;
     private OnFragmentInteractionListener mListener;
-
-    public SurveyListFragment() {
-    }
+    private Context activityContext;
 
     public static SurveyListFragment newInstance(int requestCode) {
         SurveyListFragment fragment = new SurveyListFragment();
@@ -68,15 +72,14 @@ public class SurveyListFragment extends Fragment {
         super.onCreate(savedInstanceState);
         Bundle bundle = getArguments();
         if (bundle != null) {
-            this.requestCode = bundle.getInt("REQUEST_CODE");
-            Toast.makeText(getContext(), "Request Code: " + this.requestCode, Toast.LENGTH_LONG).show();
+            this.requestCode = bundle.getInt("REQUEST_CODE", 1);
+        } else {
+            this.requestCode = 1;
         }
-
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_survey_list, container, false);
         ButterKnife.bind(this, view);
         return view;
@@ -84,10 +87,10 @@ public class SurveyListFragment extends Fragment {
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
         sharedPreferences = getActivity().getSharedPreferences(Constants.SHARED_PREFS_USER_DATA, Context.MODE_PRIVATE);
         email = sharedPreferences.getString(Constants.USER_DATA_EMAIL, "email");
-        super.onActivityCreated(savedInstanceState);
-        surveyListAdapter = new SurveyListAdapter(data);
+        userId = sharedPreferences.getInt(Constants.USER_DATA_USER_ID, 1);
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -96,24 +99,19 @@ public class SurveyListFragment extends Fragment {
         });
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         recyclerView.addItemDecoration(new SimpleDividerItemDecoration(getActivity()));
-        recyclerView.setAdapter(surveyListAdapter);
         refreshSureys();
     }
 
     private void refreshSureys() {
         swipeRefreshLayout.setRefreshing(true);
+
+        surveyListAdapter = new SurveyListAdapter(data);
+        recyclerView.setAdapter(surveyListAdapter);
+
         requestQueue = VolleySingleton.getInstance().getRequestQueue();
         Map<String, String> formData = new HashMap<>();
-
-        Bundle bundle = getArguments();
-        if (bundle != null) {
-            this.requestCode = bundle.getInt("REQUEST_CODE");
-            Toast.makeText(getContext(), "Request Code: " + this.requestCode, Toast.LENGTH_LONG).show();
-        }
-
-        formData.put("email", email);
+        formData.put("user_id", String.valueOf(userId));
         formData.put("request_code", String.valueOf(requestCode));
-        Toast.makeText(getContext(), "Request Code in Volley :" + String.valueOf(requestCode), Toast.LENGTH_LONG).show();
 
         final CustomRequest request = new CustomRequest(Request.Method.POST, Constants.SURVEY_LIST, formData, new Response.Listener<JSONObject>() {
             @Override
@@ -123,7 +121,7 @@ public class SurveyListFragment extends Fragment {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Snackbar.make(swipeRefreshLayout, "Network Error", Snackbar.LENGTH_LONG).show();
+                Snackbar.make(recyclerView, "Network Error", Snackbar.LENGTH_SHORT).show();
             }
         });
         request.setTag(Constants.SURVEY_LIST);
@@ -132,7 +130,7 @@ public class SurveyListFragment extends Fragment {
 
     private void jsonParser(JSONObject response) {
         try {
-            serverSuccess = response.getInt("success");
+            serverSuccess = response.getInt("status");
             if (serverSuccess == 1) {
                 JSONArray surveyArray = response.getJSONArray("survey");
                 for (int i = 0; i < surveyArray.length(); i++) {
@@ -149,7 +147,7 @@ public class SurveyListFragment extends Fragment {
                 notifyChangesToView();
             } else {
                 serverMessage = response.getString("message");
-                Snackbar.make(recyclerView, serverMessage, Snackbar.LENGTH_LONG).show();
+                Snackbar.make(recyclerView, serverMessage, Snackbar.LENGTH_SHORT).show();
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -176,6 +174,7 @@ public class SurveyListFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+        activityContext = context;
         if (context instanceof OnFragmentInteractionListener) {
             mListener = (OnFragmentInteractionListener) context;
         } else {

@@ -4,7 +4,8 @@ import android.app.Application;
 import android.content.Context;
 
 /**
- * Created by jmprathab on 09/12/15.
+ * ApplicationHelper class which extends Application
+ * This class is used by Volley Library
  */
 public class ApplicationHelper extends Application {
     private static ApplicationHelper sInstance;

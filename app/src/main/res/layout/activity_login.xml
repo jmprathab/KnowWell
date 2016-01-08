@@ -21,8 +21,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_margin="@dimen/activity_horizontal_margin"
-            android:padding="@dimen/activity_horizontal_margin"
+            android:layout_margin="@dimen/default_horizontal_margin"
+            android:padding="@dimen/default_horizontal_margin"
             android:text="Sign In"
             android:textColor="@color/colorIcons"
             android:textSize="30sp" />
@@ -37,11 +37,11 @@
                 android:id="@+id/email"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="@dimen/activity_horizontal_margin"
+                android:layout_margin="@dimen/default_horizontal_margin"
                 android:hint="e-mail"
                 android:inputType="textEmailAddress"
                 android:lines="1"
-                android:padding="@dimen/activity_horizontal_margin"
+                android:padding="@dimen/default_horizontal_margin"
                 android:textColor="@color/colorIcons" />
         </android.support.design.widget.TextInputLayout>
 
@@ -55,11 +55,11 @@
                 android:id="@+id/password"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="@dimen/activity_horizontal_margin"
+                android:layout_margin="@dimen/default_horizontal_margin"
                 android:hint="Password"
                 android:inputType="textPassword"
                 android:lines="1"
-                android:padding="@dimen/activity_horizontal_margin"
+                android:padding="@dimen/default_horizontal_margin"
                 android:textColor="@color/colorIcons"
                 android:textColorHint="@color/colorIcons" />
         </android.support.design.widget.TextInputLayout>
@@ -69,10 +69,10 @@
             android:id="@+id/login"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="@dimen/activity_horizontal_margin"
+            android:layout_margin="@dimen/default_horizontal_margin"
             android:background="@color/colorPrimaryDark"
             android:maxWidth="320dp"
-            android:padding="@dimen/activity_horizontal_margin"
+            android:padding="@dimen/default_horizontal_margin"
             android:text="Login"
             android:textAllCaps="false"
             android:textColor="@color/colorIcons"
@@ -88,7 +88,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="@dimen/activity_horizontal_margin"
+            android:layout_margin="@dimen/default_horizontal_margin"
             android:orientation="horizontal"
             android:weightSum="100">
 
@@ -127,7 +127,7 @@
             android:id="@+id/google_sign_in"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="@dimen/activity_horizontal_margin" />
+            android:layout_margin="@dimen/default_horizontal_margin" />
 
     </LinearLayout>
 </ScrollView>
